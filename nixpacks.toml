@@ -1,17 +1,24 @@
 [phases.setup]
-# Especificamos las herramientas necesarias.
-# Usamos 'phpPackages.composer' y 'nodejs' para la sintaxis correcta en Nix.
+# Lista de paquetes necesarios, incluyendo PHP, Node.js, etc.
 nixPkgs = [
   "php81",
   "phpPackages.composer",
   "nodejs",
   "yarn",
   "ffmpeg",
-  "libmysqlclient" # Opcional: si necesitas la extensión de MySQL/MariaDB
+  "libmysqlclient" # Opcional: si lo necesitas
 ]
 
-# Comandos de instalación de extensiones de PHP para SQL Server.
+# Comandos para instalar el driver ODBC y otras dependencias del sistema.
+# El orden es importante: primero las dependencias, luego las extensiones de PHP.
 cmds = [
+  # Instalación del driver ODBC para SQL Server
+  "curl https://packages.microsoft.com/keys/microsoft.asc | sudo apt-key add -",
+  "curl https://packages.microsoft.com/config/debian/11/prod.list | sudo tee /etc/apt/sources.list.d/mssql-tools.list",
+  "sudo apt-get update",
+  "sudo ACCEPT_EULA=Y apt-get install -y msodbcsql17 unixodbc-dev",
+
+  # Instalación de las extensiones de PHP
   "sudo pecl install pdo_sqlsrv",
   "sudo pecl install sqlsrv",
   "sudo bash -c 'echo \"extension=pdo_sqlsrv.so\" >> /etc/php/8.1/cli/php.ini'",
@@ -19,13 +26,10 @@ cmds = [
 ]
 
 [phases.build]
-# Comandos de construcción para PHP y Node.js.
 cmds = ["composer install --no-dev", "npm install && npm run production"]
 
 [start]
-# Comando para iniciar el servidor de Laravel.
 cmd = "php artisan serve --host 0.0.0.0 --port $PORT"
 
 [variables]
-# Configuración para optimizar el funcionamiento de Nix en Railway.
 NIX_CONFIG = "extra-substituters = https://cache.nixos.org https://nix-community.cachix.org?priority=10\nextra-trusted-public-keys = cache.nixos.org-1:6NCHd/XgW5ueb72bwKaQxKqClyObeWaAIyS1pA/pUqM= nix-community.cachix.org-1:m3h32y1J7gNf+P1Q/fA97Fh8tL7J8nB4s6d65w5e/zY="
