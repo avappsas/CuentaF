@@ -1,23 +1,23 @@
 [phases.setup]
-# Lista de paquetes necesarios, incluyendo PHP, Node.js, etc.
+# Incluye 'gnupg' en la lista de paquetes para resolver el error 'apt-key'.
 nixPkgs = [
   "php81",
   "phpPackages.composer",
   "nodejs",
   "yarn",
   "ffmpeg",
-  "libmysqlclient" # Opcional: si lo necesitas
+  "libmysqlclient",
+  "gnupg"
 ]
 
-# Comandos para instalar el driver ODBC y otras dependencias del sistema.
-# El orden es importante: primero las dependencias, luego las extensiones de PHP.
+# Comandos de configuración para instalar el driver ODBC y las extensiones de PHP.
 cmds = [
   # Instalación del driver ODBC para SQL Server
   "curl https://packages.microsoft.com/keys/microsoft.asc | sudo apt-key add -",
   "curl https://packages.microsoft.com/config/debian/11/prod.list | sudo tee /etc/apt/sources.list.d/mssql-tools.list",
   "sudo apt-get update",
   "sudo ACCEPT_EULA=Y apt-get install -y msodbcsql17 unixodbc-dev",
-
+  
   # Instalación de las extensiones de PHP
   "sudo pecl install pdo_sqlsrv",
   "sudo pecl install sqlsrv",
