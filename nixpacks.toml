@@ -1,0 +1,29 @@
+# nixpacks.toml
+
+# Configuración del entorno de construcción
+[phases.setup]
+# Especificamos las herramientas necesarias:
+# PHP, Composer, Node.js y Yarn para el entorno de Laravel.
+# La versión de PHP 7.4 es compatible con la extensión de SQL Server.
+nixPkgs = ["...", "php", "composer", "nodejs", "yarn"]
+
+# Configuración de las extensiones de PHP
+[phases.setup.cmds]
+# Agregamos los comandos para instalar y habilitar la extensión PDO_SQLSRV.
+# Esto asegura que tu aplicación pueda conectarse a una base de datos SQL Server.
+cmds = [
+  "sudo pecl install pdo_sqlsrv",
+  "sudo pecl install sqlsrv",
+  "sudo bash -c 'echo \"extension=pdo_sqlsrv.so\" >> /etc/php/7.4/cli/php.ini'",
+  "sudo bash -c 'echo \"extension=sqlsrv.so\" >> /etc/php/7.4/cli/php.ini'"
+]
+
+# Configuración de los comandos de inicio
+[start]
+# El comando de inicio para lanzar el servidor de desarrollo de Laravel.
+cmd = "php artisan serve --host 0.0.0.0 --port $PORT"
+
+# Configuración adicional para la fase de construcción
+[phases.build]
+# Esto asegura que Composer y NPM se ejecuten correctamente.
+cmds = ["composer install --no-dev", "npm install && npm run build"]
