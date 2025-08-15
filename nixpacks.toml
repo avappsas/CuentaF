@@ -1,28 +1,36 @@
 [phases.setup]
-# Especificamos las versiones de software. PHP 8.1 es compatible con tu proyecto.
-nixPkgs = ["...", "php81", "composer", "nodejs-16_x", "yarn"]
+# Usamos NixPkgs para especificar las herramientas necesarias.
+# Asegúrate de usar la sintaxis correcta para cada paquete.
+nixPkgs = [
+  "php81",
+  "phpPackages.composer",
+  "nodejs-16_x",
+  "yarn",
+  "ffmpeg",
+  "libmysqlclient" # Opcional: si necesitas la extensión de MySQL/MariaDB
+]
 
-# Comandos de configuración para instalar las extensiones de PHP.
+# Comandos de instalación de extensiones de PHP para SQL Server.
+# Se ejecutan después de instalar los paquetes principales.
 cmds = [
   "sudo pecl install pdo_sqlsrv",
   "sudo pecl install sqlsrv",
   "sudo bash -c 'echo \"extension=pdo_sqlsrv.so\" >> /etc/php/8.1/cli/php.ini'",
-  "sudo bash -c 'echo \"extension=sqlsrv.so\" >> /etc/php/8.1/cli/php.ini'",
-  "sudo apt-get update", # Actualizamos los repositorios del sistema operativo
-  "sudo apt-get install -y ffmpeg" # Instalamos FFmpeg para el paquete php-ffmpeg
+  "sudo bash -c 'echo \"extension=sqlsrv.so\" >> /etc/php/8.1/cli/php.ini'"
 ]
 
 [phases.build]
-# Comandos de construcción de PHP y Node.js.
+# Comandos de construcción.
+# 'composer install' para las dependencias de PHP y 'npm run production'
+# para compilar los assets de frontend.
 cmds = ["composer install --no-dev", "npm install && npm run production"]
 
 [start]
-# Comando para iniciar la aplicación.
+# Comando para iniciar el servidor de Laravel.
+# La variable $PORT es proporcionada por Railway.
 cmd = "php artisan serve --host 0.0.0.0 --port $PORT"
 
 [variables]
-# Configuración adicional si es necesario.
-# Por ejemplo, la ruta de LibreOffice puede ser diferente en Linux.
-# En Railway, deberías instalar LibreOffice y luego configurar esta variable.
-# Esto es solo un ejemplo, la instalación de LibreOffice es más compleja.
-# LIBREOFFICE_PATH = "/usr/bin/libreoffice"
+# La variable de entorno 'NIX_CONFIG' es necesaria para que Nixpacks
+# funcione correctamente en el entorno de Railway.
+NIX_CONFIG = "extra-substituters = https://cache.nixos.org https://nix-community.cachix.org?priority=10\nextra-trusted-public-keys = cache.nixos.org-1:6NCHd/XgW5ueb72bwKaQxKqClyObeWaAIyS1pA/pUqM= nix-community.cachix.org-1:m3h32y1J7gNf+P1Q/fA97Fh8tL7J8nB4s6d65w5e/zY="
