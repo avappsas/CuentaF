@@ -1,24 +1,28 @@
-# nixpacks.toml
-
-# Configuración de las fases de construcción
 [phases.setup]
-# Usamos NixPkgs para especificar las herramientas necesarias.
-nixPkgs = ["...", "php", "composer", "nodejs", "yarn"]
+# Especificamos las versiones de software. PHP 8.1 es compatible con tu proyecto.
+nixPkgs = ["...", "php81", "composer", "nodejs-16_x", "yarn"]
 
-# La lista de comandos debe estar directamente bajo [phases.setup]
-# No se debe usar un subencabezado [phases.setup.cmds]
+# Comandos de configuración para instalar las extensiones de PHP.
 cmds = [
   "sudo pecl install pdo_sqlsrv",
   "sudo pecl install sqlsrv",
-  "sudo bash -c 'echo \"extension=pdo_sqlsrv.so\" >> /etc/php/7.4/cli/php.ini'",
-  "sudo bash -c 'echo \"extension=sqlsrv.so\" >> /etc/php/7.4/cli/php.ini'"
+  "sudo bash -c 'echo \"extension=pdo_sqlsrv.so\" >> /etc/php/8.1/cli/php.ini'",
+  "sudo bash -c 'echo \"extension=sqlsrv.so\" >> /etc/php/8.1/cli/php.ini'",
+  "sudo apt-get update", # Actualizamos los repositorios del sistema operativo
+  "sudo apt-get install -y ffmpeg" # Instalamos FFmpeg para el paquete php-ffmpeg
 ]
 
-# Configuración de los comandos de inicio
+[phases.build]
+# Comandos de construcción de PHP y Node.js.
+cmds = ["composer install --no-dev", "npm install && npm run production"]
+
 [start]
-# El comando para iniciar la aplicación Laravel.
+# Comando para iniciar la aplicación.
 cmd = "php artisan serve --host 0.0.0.0 --port $PORT"
 
-# Configuración de la fase de construcción
-[phases.build]
-cmds = ["composer install --no-dev", "npm install && npm run build"]
+[variables]
+# Configuración adicional si es necesario.
+# Por ejemplo, la ruta de LibreOffice puede ser diferente en Linux.
+# En Railway, deberías instalar LibreOffice y luego configurar esta variable.
+# Esto es solo un ejemplo, la instalación de LibreOffice es más compleja.
+# LIBREOFFICE_PATH = "/usr/bin/libreoffice"
